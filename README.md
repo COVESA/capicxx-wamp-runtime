@@ -1,6 +1,7 @@
 ### CommonAPI C++ WAMP Runtime
 
-CommonAPI runtime with WAMP messaging
+CommonAPI runtime support for WAMP messaging. Please note that this project is under development.
+For more information, please refer to the companion project: https://genivi.github.io/capicxx-wamp-tools/
 
 ##### Copyright
 Copyright (C) 2017, itemis AG.
@@ -14,7 +15,7 @@ one or more Contribution License Agreements or MPL 2.0.
 This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 If a copy of the MPL was not distributed with this file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
-== CommonAPI WAMP C++ User Guide
+## CommonAPI WAMP C++ User Guide
 As this project is currently under development, no user guide is available yet.
 
 ##### Further information
