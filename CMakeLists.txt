@@ -141,8 +141,9 @@ include_directories (
     ${COMMONAPI_INCLUDE_DIRS}
 )
 
-file (GLOB CommonAPI-WAMP_SRC "src/CommonAPI/wamp/*.cpp")
-list (SORT CommonAPI-WAMP_SRC)
+file (GLOB CommonAPI-WAMP_SRC "src/CommonAPI/Wamp/*.cpp")
+list (SORT CommonAPI-WAMP_SRC
+)
 
 # CommonAPI
 add_library (CommonAPI-WAMP SHARED ${CommonAPI-WAMP_SRC})
