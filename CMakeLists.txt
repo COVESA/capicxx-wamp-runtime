@@ -149,6 +149,7 @@ list (SORT CommonAPI-WAMP_SRC
 add_library (CommonAPI-WAMP SHARED ${CommonAPI-WAMP_SRC})
 set_target_properties (CommonAPI-WAMP PROPERTIES VERSION ${COMPONENT_VERSION} SOVERSION ${COMPONENT_VERSION})
 #target_link_libraries (CommonAPI-WAMP CommonAPI vsomeip)
+target_link_libraries (CommonAPI-WAMP CommonAPI boost_thread)
 
 if (MSVC)
     target_link_libraries(CommonAPI-WAMP ws2_32 Rpcrt4)
@@ -168,7 +169,7 @@ install (
 	LIBRARY DESTINATION ${INSTALL_LIB_DIR}
 	RUNTIME DESTINATION ${INSTALL_BIN_DIR}
 	ARCHIVE DESTINATION ${INSTALL_LIB_DIR}
-    PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/CommonAPI/WAMP"
+    PUBLIC_HEADER DESTINATION "${INSTALL_INCLUDE_DIR}/CommonAPI/Wamp"
 )
 
 ##############################################################################
