@@ -14,8 +14,17 @@ namespace CommonAPI {
 namespace Wamp {
 
 INITIALIZER(FactoryInit) {
-    Runtime::get()->registerFactory("wamp", Factory::get());
+	Factory::runtime_ = Runtime::get();
+	Factory::runtime_.lock()->registerFactory("wamp", Factory::get());
 }
+
+DEINITIALIZER(FactoryDeinit) {
+    if (auto rt = Factory::runtime_.lock()) {
+        rt->unregisterFactory("wamp");
+    }
+}
+
+std::weak_ptr<CommonAPI::Runtime> Factory::runtime_;
 
 std::shared_ptr<CommonAPI::Wamp::Factory>
 Factory::get() {
@@ -23,10 +32,36 @@ Factory::get() {
     return theFactory;
 }
 
-Factory::Factory() {
+Factory::Factory() : isInitialized_(false) {
 }
 
 Factory::~Factory() {
+}
+
+void
+Factory::init() {
+#ifndef _WIN32
+	std::lock_guard<std::mutex> itsLock(initializerMutex_);
+#endif
+	if (!isInitialized_) {
+		for (auto i : initializers_) i();
+		initializers_.clear(); // Not needed anymore
+		isInitialized_ = true;
+	}
+}
+
+void
+Factory::registerInterface(InterfaceInitFunction _function) {
+#ifndef _WIN32
+	std::lock_guard<std::mutex> itsLock(initializerMutex_);
+#endif
+	if (isInitialized_) {
+		// We are already running --> initialize the interface library!
+		_function();
+	} else {
+		// We are not initialized --> save the initializer
+		initializers_.push_back(_function);
+	}
 }
 
 void

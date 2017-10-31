@@ -5,6 +5,7 @@
 #ifndef COMMONAPI_WAMP_FACTORY_HPP_
 #define COMMONAPI_WAMP_FACTORY_HPP_
 
+#include <list>
 #include <map>
 #include <unordered_map>
 
@@ -12,6 +13,9 @@
 #include <CommonAPI/Factory.hpp>
 
 namespace CommonAPI {
+
+class Runtime;
+
 namespace Wamp {
 
 class WampAddress;
@@ -19,6 +23,8 @@ class WampConnection;
 class WampProxy;
 class WampProxyConnection;
 class WampStubAdapter;
+
+typedef void (*InterfaceInitFunction)(void);
 
 typedef std::shared_ptr<WampProxy>
 (*ProxyCreateFunction)(const WampAddress &_address,
@@ -35,6 +41,8 @@ public:
 
     COMMONAPI_EXPORT Factory();
     COMMONAPI_EXPORT virtual ~Factory();
+
+    COMMONAPI_EXPORT void init();
 
     COMMONAPI_EXPORT void registerProxyCreateMethod(const std::string &_address,
                                     ProxyCreateFunction _function);
@@ -80,6 +88,12 @@ public:
     COMMONAPI_EXPORT bool registerManagedService(const std::shared_ptr<WampStubAdapter> &_adapter);
     COMMONAPI_EXPORT bool unregisterManagedService(const std::string &_address);
 
+
+    // Initialization
+    COMMONAPI_EXPORT void registerInterface(InterfaceInitFunction _function);
+
+    static std::weak_ptr<CommonAPI::Runtime> runtime_;
+
 private:
     COMMONAPI_EXPORT std::shared_ptr<WampConnection> getConnection(const ConnectionId_t &);
     COMMONAPI_EXPORT std::shared_ptr<WampConnection> getConnection(std::shared_ptr<MainLoopContext>);
@@ -100,6 +114,10 @@ private:
     std::map<std::string, StubAdapterCreateFunction> stubAdapterCreateFunctions_;
 
     ServicesMap services_;
+
+    std::list<InterfaceInitFunction> initializers_;
+    std::mutex initializerMutex_;
+    bool isInitialized_;
 };
 
 } // namespace Wamp
