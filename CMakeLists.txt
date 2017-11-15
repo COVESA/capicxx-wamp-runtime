@@ -40,7 +40,7 @@ add_definitions(-DDEFAULT_SEND_TIMEOUT=${DEFAULT_SEND_TIMEOUT})
 
 if (MSVC) 
 # Boost
-find_package( Boost 1.54 COMPONENTS system thread log REQUIRED )
+find_package( Boost 1.56 COMPONENTS system thread log REQUIRED )
 if(Boost_FOUND)
   if(Boost_LIBRARY_DIR)
     MESSAGE( STATUS "Boost_LIBRARY_DIR not empty using it: ${Boost_LIBRARY_DIR}" )
