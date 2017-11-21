@@ -17,7 +17,8 @@
 //TG   #include <CommonAPI/Wamp/WampInputStream.hpp>
 //TG   #include <CommonAPI/Wamp/WampOutputStream.hpp>
 #include <CommonAPI/Wamp/WampHelper.hpp>
-//TG   #include <CommonAPI/Wamp/WampSerializableArguments.hpp>
+#include <CommonAPI/Wamp/WampConnection.hpp>
+//#include <CommonAPI/Wamp/WampSerializableArguments.hpp>
 //TG   #include <CommonAPI/Wamp/WampClientId.hpp>
 
 namespace CommonAPI {
@@ -86,6 +87,7 @@ class WampStubAdapterHelper: public virtual WampStubAdapter {
     }
 
     virtual void init(std::shared_ptr<WampStubAdapter> instance) {
+    	std::cout << "WampStubAdapterHelper::init()" << std::endl;
         WampStubAdapter::init(instance);
         std::shared_ptr<StubAdapterType> stubAdapter = std::dynamic_pointer_cast<StubAdapterType>(instance);
         remoteEventHandler_ = stub_->initStubAdapter(stubAdapter);
@@ -222,20 +224,28 @@ class WampStubAdapterHelper: public virtual WampStubAdapter {
 */
 };
 
-template< class >
-struct WampStubSignalHelper;
 
-/*TG
-template<template<class ...> class In_, class... InArgs_>
-struct WampStubSignalHelper<In_<DBusInputStream, DBusOutputStream, InArgs_...>> {
+//template<class>
+struct WampStubTopicHelper;
 
-    static inline bool sendSignal(const char* objectPath,
-                           const char* interfaceName,
-                    const char* signalName,
-                    const char* signalSignature,
-                    const std::shared_ptr<DBusProxyConnection>& dbusConnection,
-                    const InArgs_&... inArgs) {
-        DBusMessage dbusMessage = DBusMessage::createSignal(
+//template<template<class ...> class In_, class... InArgs_>
+//struct WampStubTopicHelper<In_<InArgs_...>> {
+struct WampStubTopicHelper {
+
+    template <typename WampStub_ = WampStubAdapter, typename PayloadTuple>
+    static inline bool publishTopic(
+    		const WampStub_ &_stub,
+			const std::string topicName,
+//                           const char* interfaceName,
+//                    const char* signalName,
+//                    const char* signalSignature,
+ //                   const std::shared_ptr<DBusProxyConnection>& dbusConnection,
+//                    const InArgs_&... inArgs
+			const PayloadTuple payload
+	) {
+
+   /*
+    	DBusMessage dbusMessage = DBusMessage::createSignal(
                         objectPath,
                         interfaceName,
                         signalName,
@@ -252,8 +262,41 @@ struct WampStubSignalHelper<In_<DBusInputStream, DBusOutputStream, InArgs_...>> 
 
         const bool dbusMessageSent = dbusConnection->sendDBusMessage(dbusMessage);
         return dbusMessageSent;
+       */
+
+    	std::cout << "publishTopic '" << topicName << "'" << std::endl;
+
+    	// busy waiting until the session is started and joined
+    	// TODO: this should be changed - see https://github.com/GENIVI/capicxx-wamp-runtime/issues/7
+    	while(!_stub.getWampConnection()->isConnected());
+
+    	CommonAPI::Wamp::WampConnection* connection = (CommonAPI::Wamp::WampConnection*)(_stub.getWampConnection().get());
+    	connection->ioMutex_.lock();
+
+    	connection->session_->publish(topicName, payload);
+
+    	/*
+    	boost::future<void> provide_future_method1 = connection->session_->provide(getWampAddress().getRealm() + ".method1",
+    			std::bind(&ExampleInterfaceWampStubAdapterInternal::wrap_method1, this, std::placeholders::_1))
+    		.then([&](boost::future<autobahn::wamp_registration> registration) {
+    		try {
+    			std::cerr << "registered procedure " << getWampAddress().getRealm() << ".method1: id=" << registration.get().id() << std::endl;
+    		} catch (const std::exception& e) {
+    			std::cerr << e.what() << std::endl;
+    			connection->io_.stop();
+    			return;
+    		}
+    	});
+    	provide_future_method1.get();
+    	*/
+
+    	connection->ioMutex_.unlock();
+
+
+    	return true;
     }
 
+    /*
     template <typename DBusStub_ = DBusStubAdapter>
     static bool sendSignal(const DBusStub_ &_stub,
                     const char *_name,
@@ -294,8 +337,10 @@ struct WampStubSignalHelper<In_<DBusInputStream, DBusOutputStream, InArgs_...>> 
 
            return _stub.getDBusConnection()->sendDBusMessage(dbusMessage);
        }
+       */
 };
-*/
+
+
 
 template< class, class, class >
 class WampMethodStubDispatcher;
