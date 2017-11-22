@@ -104,41 +104,6 @@ class WampStubAdapterHelper: public virtual WampStubAdapter {
 
  protected:
 
-/*TG
-    virtual bool onInterfaceDBusMessage(const DBusMessage& dbusMessage) {
-        const char* interfaceMemberName = dbusMessage.getMember();
-        const char* interfaceMemberSignature = dbusMessage.getSignature();
-
-        assert(interfaceMemberName);
-        assert(interfaceMemberSignature);
-
-        DBusInterfaceMemberPath dbusInterfaceMemberPath(interfaceMemberName, interfaceMemberSignature);
-        auto findIterator = getStubDispatcherTable().find(dbusInterfaceMemberPath);
-        const bool foundInterfaceMemberHandler = (findIterator != getStubDispatcherTable().end());
-        bool dbusMessageHandled = false;
-        if (foundInterfaceMemberHandler) {
-            StubDispatcher* stubDispatcher = static_cast<StubDispatcher*>(findIterator->second);
-            dbusMessageHandled = stubDispatcher->dispatchDBusMessage(dbusMessage, stub_, *this);
-        }
-
-        return dbusMessageHandled;
-    }
-
-    virtual bool onInterfaceDBusFreedesktopPropertiesMessage(const DBusMessage &_message) {
-        DBusInputStream input(_message);
-
-        if (_message.hasMemberName("Get")) {
-            return handleFreedesktopGet(_message, input);
-        } else if (_message.hasMemberName("Set")) {
-            return handleFreedesktopSet(_message, input);
-        } else if (_message.hasMemberName("GetAll")) {
-            return handleFreedesktopGetAll(_message, input);
-        }
-
-        return false;
-    }
-*/
-
     virtual const StubDispatcherTable& getStubDispatcherTable() = 0;
     virtual const StubAttributeTable& getStubAttributeTable() = 0;
 
@@ -146,87 +111,11 @@ class WampStubAdapterHelper: public virtual WampStubAdapter {
     RemoteEventHandlerType* remoteEventHandler_;
 
  private:
-/*TG
-    bool handleFreedesktopGet(const DBusMessage &_message, DBusInputStream &_input) {
-        std::string interfaceName;
-        std::string attributeName;
-        _input >> interfaceName;
-        _input >> attributeName;
-
-        if (_input.hasError()) {
-            return false;
-        }
-
-        auto attributeDispatcherIterator = getStubAttributeTable().find(attributeName);
-        if (attributeDispatcherIterator == getStubAttributeTable().end()) {
-            return false;
-        }
-
-        StubDispatcher* getterDispatcher = static_cast<StubDispatcher*>(attributeDispatcherIterator->second.getter);
-        assert(getterDispatcher != NULL); // all attributes have at least a getter
-        return (getterDispatcher->dispatchDBusMessage(_message, stub_, *this));
-    }
-
-    bool handleFreedesktopSet(const DBusMessage& dbusMessage, DBusInputStream& dbusInputStream) {
-        std::string interfaceName;
-        std::string attributeName;
-        dbusInputStream >> interfaceName;
-        dbusInputStream >> attributeName;
-
-        if(dbusInputStream.hasError()) {
-            return false;
-        }
-
-        auto attributeDispatcherIterator = getStubAttributeTable().find(attributeName);
-        if(attributeDispatcherIterator == getStubAttributeTable().end()) {
-            return false;
-        }
-
-        StubDispatcher *setterDispatcher = static_cast<StubDispatcher*>(attributeDispatcherIterator->second.setter);
-        if (setterDispatcher == NULL) { // readonly attributes do not have a setter
-            return false;
-        }
-
-        return setterDispatcher->dispatchDBusMessage(dbusMessage, stub_, *this);
-    }
-
-    bool handleFreedesktopGetAll(const DBusMessage& dbusMessage, DBusInputStream& dbusInputStream) {
-        std::string interfaceName;
-        dbusInputStream >> interfaceName;
-
-        if(dbusInputStream.hasError()) {
-            return false;
-        }
-
-        DBusMessage dbusMessageReply = dbusMessage.createMethodReturn("a{sv}");
-        DBusOutputStream dbusOutputStream(dbusMessageReply);
-
-        dbusOutputStream.beginWriteMap();
-
-        std::shared_ptr<DBusClientId> clientId = std::make_shared<DBusClientId>(std::string(dbusMessage.getSender()));
-        for(auto attributeDispatcherIterator = getStubAttributeTable().begin(); attributeDispatcherIterator != getStubAttributeTable().end(); attributeDispatcherIterator++) {
-
-            //To prevent the destruction of the stub whilst still handling a message
-            if (stub_) {
-                StubDispatcher* getterDispatcher = static_cast<StubDispatcher*>(attributeDispatcherIterator->second.getter);
-                assert(getterDispatcher != NULL); // all attributes have at least a getter
-                dbusOutputStream.align(8);
-                dbusOutputStream << attributeDispatcherIterator->first;
-                getterDispatcher->appendGetAllReply(dbusMessage, stub_, *this, dbusOutputStream);
-            }
-        }
-
-        dbusOutputStream.endWriteMap();
-        dbusOutputStream.flush();
-
-        return getDBusConnection()->sendDBusMessage(dbusMessageReply);
-    }
-*/
 };
 
 
 //template<class>
-struct WampStubTopicHelper;
+//struct WampStubTopicHelper;
 
 //template<template<class ...> class In_, class... InArgs_>
 //struct WampStubTopicHelper<In_<InArgs_...>> {
@@ -236,34 +125,8 @@ struct WampStubTopicHelper {
     static inline bool publishTopic(
     		const WampStub_ &_stub,
 			const std::string topicName,
-//                           const char* interfaceName,
-//                    const char* signalName,
-//                    const char* signalSignature,
- //                   const std::shared_ptr<DBusProxyConnection>& dbusConnection,
-//                    const InArgs_&... inArgs
 			const PayloadTuple payload
 	) {
-
-   /*
-    	DBusMessage dbusMessage = DBusMessage::createSignal(
-                        objectPath,
-                        interfaceName,
-                        signalName,
-                        signalSignature);
-
-        if (sizeof...(InArgs_) > 0) {
-            DBusOutputStream outputStream(dbusMessage);
-            const bool success = DBusSerializableArguments<InArgs_...>::serialize(outputStream, inArgs...);
-            if (!success) {
-                return false;
-            }
-            outputStream.flush();
-        }
-
-        const bool dbusMessageSent = dbusConnection->sendDBusMessage(dbusMessage);
-        return dbusMessageSent;
-       */
-
     	std::cout << "publishTopic '" << topicName << "'" << std::endl;
 
     	// busy waiting until the session is started and joined
@@ -272,72 +135,11 @@ struct WampStubTopicHelper {
 
     	CommonAPI::Wamp::WampConnection* connection = (CommonAPI::Wamp::WampConnection*)(_stub.getWampConnection().get());
     	connection->ioMutex_.lock();
-
     	connection->session_->publish(topicName, payload);
-
-    	/*
-    	boost::future<void> provide_future_method1 = connection->session_->provide(getWampAddress().getRealm() + ".method1",
-    			std::bind(&ExampleInterfaceWampStubAdapterInternal::wrap_method1, this, std::placeholders::_1))
-    		.then([&](boost::future<autobahn::wamp_registration> registration) {
-    		try {
-    			std::cerr << "registered procedure " << getWampAddress().getRealm() << ".method1: id=" << registration.get().id() << std::endl;
-    		} catch (const std::exception& e) {
-    			std::cerr << e.what() << std::endl;
-    			connection->io_.stop();
-    			return;
-    		}
-    	});
-    	provide_future_method1.get();
-    	*/
-
     	connection->ioMutex_.unlock();
-
 
     	return true;
     }
-
-    /*
-    template <typename DBusStub_ = DBusStubAdapter>
-    static bool sendSignal(const DBusStub_ &_stub,
-                    const char *_name,
-                    const char *_signature,
-                    const InArgs_&... inArgs) {
-        return(sendSignal(_stub.getDBusAddress().getObjectPath().c_str(),
-                          _stub.getDBusAddress().getInterface().c_str(),
-                          _name,
-                          _signature,
-                          _stub.getDBusConnection(),
-                          inArgs...));
-    }
-
-
-    template <typename DBusStub_ = DBusStubAdapter>
-       static bool sendSignal(const char *_target,
-                                    const DBusStub_ &_stub,
-                                    const char *_name,
-                                    const char *_signature,
-                                    const InArgs_&... inArgs) {
-           DBusMessage dbusMessage
-                  = DBusMessage::createSignal(
-                   _stub.getDBusAddress().getObjectPath().c_str(),
-                   _stub.getDBusAddress().getInterface().c_str(),
-                   _name,
-                   _signature);
-
-           dbusMessage.setDestination(_target);
-
-           if (sizeof...(InArgs_) > 0) {
-               DBusOutputStream outputStream(dbusMessage);
-               const bool success = DBusSerializableArguments<InArgs_...>::serialize(outputStream, inArgs...);
-               if (!success) {
-                   return false;
-               }
-               outputStream.flush();
-           }
-
-           return _stub.getDBusConnection()->sendDBusMessage(dbusMessage);
-       }
-       */
 };
 
 
@@ -399,23 +201,18 @@ class WampMethodStubDispatcher<StubClass_, In_<InArgs_...>, DeplIn_<DeplIn_Args.
     std::tuple<CommonAPI::Deployable<InArgs_, DeplIn_Args>...> in_;
 };
 
-
-template< class, class, class, class, class>
+/*
+template< class, class, class>
 class WampMethodWithReplyStubDispatcher;
 
 template <
     typename StubClass_,
     template <class...> class In_, class... InArgs_,
-    template <class...> class Out_, class... OutArgs_,
-    template <class...> class DeplIn_, class... DeplIn_Args,
-    template <class...> class DeplOut_, class... DeplOutArgs_>
-
+    template <class...> class Out_, class... OutArgs_>
 class WampMethodWithReplyStubDispatcher<
        StubClass_,
        In_<InArgs_...>,
-       Out_<OutArgs_...>,
-       DeplIn_<DeplIn_Args...>,
-       DeplOut_<DeplOutArgs_...> >:
+       Out_<OutArgs_...> > :
             public WampStubAdapterHelper<StubClass_>::StubDispatcher {
  public:
     typedef WampStubAdapterHelper<StubClass_> WampStubAdapterHelperType;
@@ -423,32 +220,14 @@ class WampMethodWithReplyStubDispatcher<
     typedef void (StubClass_::*StubFunctor_)(
                 std::shared_ptr<CommonAPI::ClientId>, InArgs_..., ReplyType_t);
 
-    WampMethodWithReplyStubDispatcher(StubFunctor_ stubFunctor,
-        const char* wampReplySignature,
-        std::tuple<DeplIn_Args*...> _inDepArgs,
-        std::tuple<DeplOutArgs_*...> _outDepArgs):
+    WampMethodWithReplyStubDispatcher(StubFunctor_ stubFunctor) :
             stubFunctor_(stubFunctor),
-            wampReplySignature_(wampReplySignature),
             out_(_outDepArgs),
             currentCall_(0) {
 
         initialize(typename make_sequence_range<sizeof...(DeplIn_Args), 0>::type(), _inDepArgs);
 
     }
-
-/*TG
-    bool dispatchDBusMessage(const DBusMessage& dbusMessage, 
-                             const std::shared_ptr<StubClass_>& stub,
-                             DBusStubAdapterHelperType& dbusStubAdapterHelper) {
-        connection_ = dbusStubAdapterHelper.getDBusConnection();
-        return handleDBusMessage(
-                        dbusMessage,
-                        stub,
-                        dbusStubAdapterHelper,
-                        typename make_sequence_range<sizeof...(InArgs_), 0>::type(),
-                        typename make_sequence_range<sizeof...(OutArgs_), 0>::type());
-    }
-*/
 
     bool sendReply(CommonAPI::CallId_t _call, 
                        std::tuple<CommonAPI::Deployable<OutArgs_, DeplOutArgs_>...> args = std::make_tuple()) {
@@ -462,7 +241,7 @@ private:
         in_ = std::make_tuple(std::get<DeplIn_ArgIndices>(_in)...);
     }
 
-
+*/
 /*TG
     template <int... InArgIndices_, int... OutArgIndices_>
     inline bool handleDBusMessage(const DBusMessage& dbusMessage,
@@ -503,11 +282,13 @@ private:
     }
 */
 
+/*
     template<int... OutArgIndices_>
     bool sendReplyInternal(CommonAPI::CallId_t _call,
                            index_sequence<OutArgIndices_...>,
                            std::tuple<CommonAPI::Deployable<OutArgs_, DeplOutArgs_>...> args) {
         std::lock_guard<std::mutex> lock(mutex_);
+*/
 /*TG
         auto reply = pending_.find(_call);
         if (reply != pending_.end()) {
@@ -526,7 +307,7 @@ private:
             return isSuccessful;
         }
 */
-        return false;
+ /*       return false;
     }
 
     StubFunctor_ stubFunctor_;
@@ -540,6 +321,8 @@ private:
 
     std::shared_ptr<WampProxyConnection> connection_;
 };
+*/
+
 
 template< class, class, class, class >
 class WampMethodWithReplyAdapterDispatcher;
