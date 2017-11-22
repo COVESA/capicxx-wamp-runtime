@@ -201,8 +201,49 @@ class WampMethodStubDispatcher<StubClass_, In_<InArgs_...>, DeplIn_<DeplIn_Args.
     std::tuple<CommonAPI::Deployable<InArgs_, DeplIn_Args>...> in_;
 };
 
+
+template<class>
+class WampMethodWithReplyStubDispatcher;
+
+template <typename StubClass_>
+class WampMethodWithReplyStubDispatcher {
+public:
+	typedef void (StubClass_::*MethodWrapper)(autobahn::wamp_invocation invocation);
+
+    template <typename WampStub_ = WampStubAdapter>
+	static inline bool provideRemoteMethod(
+			const WampStub_ &_stub,
+			const char* methodName,
+			MethodWrapper wrapper
+	) {
+		// busy waiting until the session is started and joined
+		while(!_stub.getWampConnection()->isConnected());
+
+		CommonAPI::Wamp::WampConnection* connection = (CommonAPI::Wamp::WampConnection*)(_stub.getWampConnection().get());
+		connection->ioMutex_.lock();
+
+		std::string identifier = _stub.getWampAddress().getRealm() + "." + methodName;
+		boost::future<void> provide_future = connection->session_->provide(identifier,
+				std::bind(wrapper, _stub, std::placeholders::_1))
+			.then([&](boost::future<autobahn::wamp_registration> registration) {
+			try {
+				std::cerr << "registered procedure " << identifier << ": id=" << registration.get().id() << std::endl;
+			} catch (const std::exception& e) {
+				std::cerr << e.what() << std::endl;
+				connection->io_.stop();
+				return;
+			}
+		});
+		provide_future.get();
+
+		connection->ioMutex_.unlock();
+		return true;
+	}
+};
+
+
 /*
-template< class, class, class>
+template< class>
 class WampMethodWithReplyStubDispatcher;
 
 template <
