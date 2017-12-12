@@ -28,6 +28,30 @@ https://genivi.github.io/capicxx-core-tools/
 
 ### Build Instructions for Linux
 
+#### Prerequisites
+The following packages are required to build autobahn-cpp and WAMP Runtime
+
+- Install build tools and Boost libs: `sudo apt install libbz2-dev libssl-dev cmake libboost-dev libboost-system-dev libboost-thread-dev libboost-log-dev`
+
+##### MsgPack-C installation
+- Open your git folder in a terminal and type: `git clone https://github.com/msgpack/msgpack-c.git`
+- `cd msgpack-c`
+- `git checkout cpp-1.4.2`
+- `cmake -DMSGPACK_CXX11=ON .`
+- `sudo make install`
+
+##### WebSocket++ installation
+- Open your git folder in a terminal and type: `git clone https://github.com/zaphoyd/websocketpp.git`
+- `cd websocketpp`
+- `cmake .`
+- `sudo make install`
+
+##### AutobahnC++ installation
+For additional help look here: [Installation on Linux](https://github.com/crossbario/autobahn-cpp).
+- Open your git folder in a terminal and type: `git clone https://github.com/crossbario/autobahn-cpp.git`
+- `cd autobahn-cpp`
+- `sudo cp -r autobahn/ /usr/local/include/`
+
 #### Build CommonAPI-WAMP Runtime
 
 Use CMake to build the CommonAPI WAMP runtime library. We assume that your source directory is common-api-wamp-runtime:
