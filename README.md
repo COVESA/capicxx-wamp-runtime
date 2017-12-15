@@ -59,6 +59,7 @@ Use CMake to build the CommonAPI WAMP runtime library. We assume that your sourc
 ```bash
 $ cd common-api-wamp-runtime
 $ mkdir build
+$ cd build
 $ cmake -D USE_INSTALLED_COMMONAPI=ON -D CMAKE_INSTALL_PREFIX=/usr/local ..
 $ make
 $ make install
