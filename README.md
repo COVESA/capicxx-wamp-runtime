@@ -54,10 +54,10 @@ For additional help look here: [Installation on Linux](https://github.com/crossb
 
 #### Build CommonAPI-WAMP Runtime
 
-Use CMake to build the CommonAPI WAMP runtime library. We assume that your source directory is common-api-wamp-runtime:
+Use CMake to build the CommonAPI WAMP runtime library. We assume that your source directory is capicxx-wamp-runtime:
 
 ```bash
-$ cd common-api-wamp-runtime
+$ cd capicxx-wamp-runtime
 $ mkdir build
 $ cd build
 $ cmake -D USE_INSTALLED_COMMONAPI=ON -D CMAKE_INSTALL_PREFIX=/usr/local ..
