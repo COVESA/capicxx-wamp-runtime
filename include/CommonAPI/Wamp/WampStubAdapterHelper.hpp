@@ -135,7 +135,11 @@ struct WampStubTopicHelper {
 
     	CommonAPI::Wamp::WampConnection* connection = (CommonAPI::Wamp::WampConnection*)(_stub.getWampConnection().get());
     	connection->ioMutex_.lock();
-    	connection->session_->publish(topicName, payload);
+    	try {
+    	    connection->session_->publish(topicName, payload);
+    	} catch (const std::exception& e) {
+    		std::cerr << "Exception in publishTopic '" << topicName << "': " << e.what() << std::endl;
+    	}
     	connection->ioMutex_.unlock();
 
     	return true;
